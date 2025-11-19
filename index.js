@@ -2,11 +2,10 @@
  * @Author                : adolnb<loro.lorenzonunez@gmail.com>              *
  * @CreatedDate           : 2025-11-18 17:49:50                              *
  * @LastEditors           : adolnb<loro.lorenzonunez@gmail.com>              *
- * @LastEditDate          : 2025-11-19 00:43:35                              *
+ * @LastEditDate          : 2025-11-19 01:12:13                              *
  * @FilePath              : index.js                                         *
  * @CopyRight             : © 2025 Adonai LN - B0MB0                         *
  ****************************************************************************/
-
 
 import mqtt from "mqtt";
 import mongoose from "mongoose";
@@ -20,14 +19,6 @@ mongoose.connect(process.env.MONGO_URL)
   .then(() => console.log("MongoDB conectado"))
   .catch(err => console.error(err));
 
-// const Telemetria = mongoose.model("Telemetria", new mongoose.Schema({
-//   temperatura: Number,
-//   humedad: Number,
-//   wifi_rssi: Number,
-//   uptime: Number,
-//   timestamp: any,
-// }));
-
 const Telemetria = mongoose.model("Telemetria", new mongoose.Schema({
   temperatura: Number,
   humedad: Number,
@@ -38,13 +29,12 @@ const Telemetria = mongoose.model("Telemetria", new mongoose.Schema({
     set: (value) => {
       const num = Number(value);
       if (!isNaN(num)) {
-        return new Date(num / 1000); 
+        return new Date(num * 1000); 
       }
-        return new Date();
-      },
+      return new Date();
     },
-  })
-);
+  }
+}));
 
 // CONEXIÓN MQTT (TLS)
 const mqttOptions = {
