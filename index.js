@@ -2,7 +2,7 @@
  * @Author                : adolnb<loro.lorenzonunez@gmail.com>              *
  * @CreatedDate           : 2025-11-18 17:49:50                              *
  * @LastEditors           : adolnb<loro.lorenzonunez@gmail.com>              *
- * @LastEditDate          : 2025-11-19 01:12:13                              *
+ * @LastEditDate          : 2025-11-19 18:47:39                              *
  * @FilePath              : index.js                                         *
  * @CopyRight             : © 2025 Adonai LN - B0MB0                         *
  ****************************************************************************/
@@ -76,9 +76,18 @@ app.get("/api/telemetria", async (_req, res) => {
   res.json(data);
 });
 
-app.get("/api/telemetria/latest", async (_req, res) => {
+app.get("/api/telemetria/ ", async (_req, res) => {
   const data = await Telemetria.findOne().sort({ timestamp: -1 });
   res.json(data);
+});
+
+app.get("/api/telemetria/count", async (_req, res) => {
+  try {
+    const total = await Telemetria.countDocuments();
+    res.json({ total });
+  } catch (err) {
+    res.status(500).json({ error: "Error obteniendo el conteo" });
+  }
 });
 
 app.listen(process.env.PORT, () => console.log("API corriendo en puerto", process.env.PORT));
