@@ -11,6 +11,8 @@ import mqtt from "mqtt";
 import mongoose from "mongoose";
 import express from "express";
 import cors from "cors";
+import jwt from "jsonwebtoken";
+import moment from "moment-timezone";
 import { config } from "dotenv";
 
 config();
@@ -24,16 +26,8 @@ const Telemetria = mongoose.model("Telemetria", new mongoose.Schema({
   humedad: Number,
   wifi_rssi: Number,
   uptime: Number,
-  timestamp: {
-    type: Date,
-    set: (value) => {
-      const num = Number(value);
-      if (!isNaN(num)) {
-        return new Date(num * 1000); 
-      }
-      return new Date();
-    },
-  }
+  timestamp: Number,
+  local: Date,
 }));
 
 // CONEXIÓN MQTT (TLS)
@@ -43,12 +37,9 @@ const mqttOptions = {
   rejectUnauthorized: false,
 };
 
-console.log("Conectando a MQTT...");
-
 const client = mqtt.connect(process.env.MQTT_URL, mqttOptions);
 
 client.on("connect", () => {
-  console.log("Conectado al broker MQTT (TLS)");
   client.subscribe("esp32/telemetria", (err) => {
     if (err) console.error("Error al suscribirse al topic:", err);
   });
@@ -60,7 +51,9 @@ client.on("message", async (topic, message) => {
 
   try {
     const data = JSON.parse(message.toString());
-    await Telemetria.create(data);
+    const fechaLocal = moment().tz("America/Mexico_City").toDate();
+
+    await Telemetria.create(data, fechaLocal);
     console.log("Guardado en MongoDB");
   } catch (err) {
     console.error("Error procesando mensaje:", err);
@@ -70,6 +63,39 @@ client.on("message", async (topic, message) => {
 // Consultar APIS
 const app = express();
 app.use(cors());
+app.use(express.json());
+
+
+app.post("/api/login", (req, res) => {
+  const { email, password } = req.body;
+
+  const users = [
+    { email: process.env.USER1_EMAIL, pass: process.env.USER1_PASS },
+    { email: process.env.USER2_EMAIL, pass: process.env.USER2_PASS }
+  ];
+
+  const user = users.find(u => u.email === email && u.pass === password);
+
+  if (!user) {
+    return res.status(401).json({ success: false, message: "Credenciales inválidas" });
+  }
+
+  const token = jwt.sign(
+    { email: user.email },
+    process.env.JWT_SECRET,
+    { expiresIn: "8h" }
+  );
+
+  res.json({ success: true, token, email: user.email });
+});
+
+
+app.get("/api/update", (_req, res) => {
+  const randomSeconds = Math.floor(Math.random() * (60 - 4 + 1)) + 4;
+
+  res.json({ success: true, interval: randomSeconds, });
+});
+
 
 app.get("/api/telemetria", async (_req, res) => {
   const data = await Telemetria.find().sort({ timestamp: -1 });
