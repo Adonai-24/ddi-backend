@@ -52,9 +52,11 @@ client.on("message", async (topic, message) => {
 
   try {
     const data = JSON.parse(message.toString());
-    const fechaLocal = moment().tz("America/Mexico_City").toDate();
+    const fechaLocal = moment().tz("America/Mexico_City").subtract(6, "hours").toDate();
 
-    await Telemetria.create(data, { local: fechaLocal });
+    data.local = fechaLocal;
+
+    await Telemetria.create(data);
     console.log("Guardado en MongoDB");
   } catch (err) {
     console.error("Error procesando mensaje:", err);
