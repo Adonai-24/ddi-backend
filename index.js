@@ -27,6 +27,7 @@ const Telemetria = mongoose.model("Telemetria", new mongoose.Schema({
   wifi_rssi: Number,
   uptime: Number,
   timestamp: Number,
+  interval: Number,
   local: Date,
 }));
 
@@ -53,7 +54,7 @@ client.on("message", async (topic, message) => {
     const data = JSON.parse(message.toString());
     const fechaLocal = moment().tz("America/Mexico_City").toDate();
 
-    await Telemetria.create(data, fechaLocal);
+    await Telemetria.create(data, { local: fechaLocal });
     console.log("Guardado en MongoDB");
   } catch (err) {
     console.error("Error procesando mensaje:", err);
@@ -102,12 +103,12 @@ app.get("/api/update", (_req, res) => {
 
 
 app.get("/api/telemetria", async (_req, res) => {
-  const data = await Telemetria.find().sort({ timestamp: -1 });
+  const data = await Telemetria.find().sort({ local: -1 });
   res.json(data);
 });
 
 app.get("/api/telemetria/latest", async (_req, res) => {
-  const data = await Telemetria.findOne().sort({ timestamp: -1 });
+  const data = await Telemetria.findOne().sort({ local: -1 });
   res.json(data);
 });
 
