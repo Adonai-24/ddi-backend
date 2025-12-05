@@ -105,7 +105,10 @@ app.get("/api/update", (_req, res) => {
 
 
 app.get("/api/telemetria", async (_req, res) => {
-  const data = await Telemetria.find().sort({ local: -1 });
+  const data = await Telemetria.find({
+    interval: { $exists: true },
+    local: { $exists: true }
+  }).sort({ local: -1 });
   res.json(data);
 });
 
