@@ -96,14 +96,6 @@ app.post("/api/login", (req, res) => {
   res.json({ success: true, token, email: user.email });
 });
 
-
-app.get("/api/update", (_req, res) => {
-  const randomSeconds = Math.floor(Math.random() * (60 - 4 + 1)) + 4;
-
-  res.json({ success: true, interval: randomSeconds, });
-});
-
-
 app.get("/api/telemetria", async (_req, res) => {
   const data = await Telemetria.find({
     interval: { $exists: true },
